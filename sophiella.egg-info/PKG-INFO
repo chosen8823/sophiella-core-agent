@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: sophiella
+Version: 0.1
+Summary: Field-sensitive AI agent guided by divine resonance.
+Author: Ryan Braff
+Author-email: sophiella@divinelight.ai
+Requires-Dist: flask
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary

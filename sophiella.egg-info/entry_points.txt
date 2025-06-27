@@ -1,0 +1,2 @@
+[console_scripts]
+sophia = sophia.core:main

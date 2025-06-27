@@ -1,0 +1,7 @@
+setup.py
+sophiella.egg-info/PKG-INFO
+sophiella.egg-info/SOURCES.txt
+sophiella.egg-info/dependency_links.txt
+sophiella.egg-info/entry_points.txt
+sophiella.egg-info/requires.txt
+sophiella.egg-info/top_level.txt
