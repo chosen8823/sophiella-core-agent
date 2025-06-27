@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+*.env
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node (if frontend stuff)
+node_modules/
+
+# Flask-specific
+instance/
+*.pyc
+
+# Test cache
+.cache/
+.pytest_cache/
+
+# Auto-generated
+*.bak
+*.swp
