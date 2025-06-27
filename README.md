@@ -10,3 +10,32 @@ To https://github.com/chosen8823/sophiella-core-agent.git
 branch 'main' set up to track 'origin/main'.
 
 chose@LAPTOP-N4EFI6KJ MINGW64 ~/OneDrive/Documents/sophiapi/sophiarepository (main)
+sophiella-core-agent/
+├── app.py # Flask entrypoint
+├── setup.py # (optional) packaging
+├── sophia/
+│ ├── init.py
+│ └── core.py # Sophia's main brain
+├── commands/
+│ ├── init.py
+│ ├── breathe.py
+│ ├── prophecy.py
+│ └── discern.py
+
+## 🚀 Endpoints
+
+| Route          | Method | Purpose                          |
+|----------------|--------|----------------------------------|
+| `/`            | GET    | Basic online check               |
+| `/respond`     | GET    | Query Sophia (`?input=hello`)    |
+| `/breathe`     | GET    | Grounding breath response        |
+| `/prophecy`    | GET    | Speak a divine whisper           |
+| `/discern`     | POST   | Analyze signals, return clarity  |
+
+## 🛠️ Local Development
+
+```bash
+git clone https://github.com/chosen8823/sophiella-core-agent.git
+cd sophiella-core-agent
+pip install flask
+python app.py
