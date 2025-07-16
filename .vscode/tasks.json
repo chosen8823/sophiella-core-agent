@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run app",
+            "type": "shell",
+            "command": "python app.py",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flask server",
+            "type": "shell",
+            "command": "flask --app app.py run",
+            "env": {
+                "FLASK_ENV": "development"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
