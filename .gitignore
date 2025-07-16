@@ -39,3 +39,6 @@ instance/
 # Auto-generated
 *.bak
 *.swp
+!/.vscode/
+!/.vscode/launch.json
+!/.vscode/tasks.json
