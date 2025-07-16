@@ -1,0 +1,55 @@
+{
+  "info": {
+    "name": "Sophia API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Check online",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5000/"
+      }
+    },
+    {
+      "name": "Respond",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/respond?input=hello",
+          "host": ["http://localhost:5000"],
+          "path": ["respond"],
+          "query": [
+            {"key": "input", "value": "hello"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Breathe",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5000/breathe"
+      }
+    },
+    {
+      "name": "Prophecy",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5000/prophecy"
+      }
+    },
+    {
+      "name": "Discern",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"signal\": \"test\"\n}"
+        },
+        "url": "http://localhost:5000/discern"
+      }
+    }
+  ]
+}

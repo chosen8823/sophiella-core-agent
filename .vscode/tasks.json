@@ -7,6 +7,15 @@
             "command": "python app.py",
             "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "Flask server",
+            "type": "shell",
+            "command": "flask --app app.py run",
+            "env": {
+                "FLASK_ENV": "development"
+            },
+            "problemMatcher": []
         }
     ]
 }
