@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Companion - Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center" aria-hidden="true">
+          <span class="text-2xl">🤖</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 dark:text-white">AI Companion Settings</h1>
+          <p class="text-slate-500 dark:text-slate-400">Configure your AI assistant</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">API Configuration</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">API Endpoint URL</label>
+              <input type="url" id="apiEndpoint" class="w-full bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-500 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://api.openai.com/v1/chat/completions">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">API Key</label>
+              <input type="password" id="apiKey" class="w-full bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-500 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your API key">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Model</label>
+              <select id="modelSelect" class="w-full bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-500 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="gpt-4">GPT-4</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="custom">Custom Model</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Accessibility Features</h2>
+          
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-slate-700 dark:text-slate-300">Enhanced ARIA Mode</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Provides detailed accessibility information</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="ariaEnhanced" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-slate-700 dark:text-slate-300">Auto-speak Responses</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Read responses aloud using text-to-speech</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="autoSpeak" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-6">
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Appearance</h2>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium text-slate-700 dark:text-slate-300">Dark Mode</p>
+              <p class="text-sm text-slate-500 dark:text-slate-400">Switch between light and dark themes</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="darkMode" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-8">
+        <button id="saveBtn" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl px-6 py-3 font-medium hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-[1.02]">
+          Save Settings
+        </button>
+        <button id="resetBtn" class="px-6 py-3 font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
+          Reset to Defaults
+        </button>
+      </div>
+      
+      <div id="statusMessage" class="mt-4 text-center text-sm hidden"></div>
+    </div>
+
+    <p class="text-center text-white/60 mt-6 text-sm">
+      AI Companion v1.0.0 • Microsoft Edge Extension
+    </p>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Living Network Realm</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #020408;
+    --bg2: #050d15;
+    --panel: #080f1a;
+    --border: #0d2a45;
+    --cyan: #00f0ff;
+    --cyan2: #00b8cc;
+    --magenta: #ff00cc;
+    --magenta2: #cc0099;
+    --gold: #ffd700;
+    --green: #00ff88;
+    --purple: #9945ff;
+    --red: #ff3355;
+    --text: #c8e8f8;
+    --muted: #4a7090;
+    --glow-c: 0 0 8px #00f0ff88, 0 0 24px #00f0ff33;
+    --glow-m: 0 0 8px #ff00cc88, 0 0 24px #ff00cc33;
+    --glow-g: 0 0 8px #00ff8888, 0 0 24px #00ff8833;
+    --glow-p: 0 0 8px #9945ff88, 0 0 24px #9945ff33;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── CANVAS BG ── */
+  #starfield { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+  /* ── SCAN LINE ── */
+  body::after {
+    content:'';
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.015) 2px, rgba(0,240,255,0.015) 4px);
+    pointer-events:none; z-index:1;
+    animation: scanmove 8s linear infinite;
+  }
+  @keyframes scanmove { from { background-position: 0 0; } to { background-position: 0 100px; } }
+
+  .app { position:relative; z-index:2; max-width:1400px; margin:0 auto; padding:16px; }
+
+  /* ── HEADER ── */
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px; margin-bottom: 20px;
+  }
+  .logo { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; letter-spacing:3px; color:var(--cyan); text-shadow: var(--glow-c); }
+  .logo span { color:var(--magenta); }
+  .build-tag { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--muted); }
+  .spine-pill {
+    display:flex; align-items:center; gap:6px;
+    background: #00f0ff11; border: 1px solid var(--cyan); border-radius:20px;
+    padding:4px 12px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--cyan);
+  }
+  .spine-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow: var(--glow-g); animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  /* ── GRID ── */
+  .grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .grid-wide { grid-column: span 2; }
+  .grid-full { grid-column: span 3; }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0.5;
+  }
+  .panel.magenta::before { background: linear-gradient(90deg, transparent, var(--magenta), transparent); }
+  .panel.gold::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .panel.green::before { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+  .panel.purple::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+
+  .panel-title {
+    font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:2px;
+    color:var(--muted); text-transform:uppercase; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-title .icon { font-size:0.9rem; }
+
+  /* ── AGENTS ── */
+  .agents-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .agent-card {
+    background:#0a1520; border:1px solid var(--border);
+    border-radius:6px; padding:10px 12px;
+    cursor:pointer; transition:all 0.2s;
+    position:relative; overflow:hidden;
+  }
+  .agent-card:hover { border-color: var(--cyan); box-shadow: var(--glow-c); }
+  .agent-card.aria { border-color: #00f0ff44; }
+  .agent-card.sophilla { border-color: #ff00cc44; }
+  .agent-card.perceptor { border-color: #ffd70044; }
+  .agent-card.tessellation { border-color: #9945ff44; }
+  .agent-card.aria:hover { border-color:var(--cyan); }
+  .agent-card.sophilla:hover { border-color:var(--magenta); }
+  .agent-card.perceptor:hover { border-color:var(--gold); }
+  .agent-card.tessellation:hover { border-color:var(--purple); }
+
+  .agent-name { font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; margin-bottom:4px; }
+  .aria .agent-name { color:var(--cyan); }
+  .sophilla .agent-name { color:var(--magenta); }
+  .perceptor .agent-name { color:var(--gold); }
+  .tessellation .agent-name { color:var(--purple); }
+
+  .agent-role { font-size:0.65rem; color:var(--muted); margin-bottom:8px; }
+  .agent-caps { display:flex; flex-wrap:wrap; gap:3px; }
+  .cap-tag {
+    font-family:'Share Tech Mono',monospace; font-size:0.55rem;
+    background:#0d2a45; border:1px solid var(--border);
+    border-radius:3px; padding:1px 5px; color:var(--muted);
+  }
+  .agent-status-row { display:flex; align-items:center; gap:5px; margin-top:8px; }
+  .status-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite; }
+  .status-label { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--green); }
+  .agent-breathe { position:absolute; bottom:0; right:0; width:40px; height:40px; border-radius:50%; opacity:0.06; animation:breathe 3s ease-in-out infinite; }
+  .aria .agent-breathe { background:var(--cyan); }
+  .sophilla .agent-breathe { background:var(--magenta); }
+  .perceptor .agent-breathe { background:var(--gold); }
+  .tessellation .agent-breathe { background:var(--purple); }
+  @keyframes breathe { 0%,100%{transform:scale(1) translate(10px,10px)} 50%{transform:scale(2.5) translate(10px,10px)} }
+
+  /* ── CARTRIDGE ── */
+  .cartridge-list { display:flex; flex-direction:column; gap:8px; }
+  .cart-item {
+    display:flex; align-items:center; justify-content:space-between;
+    background:#0a1520; border:1px solid var(--border);
+    border-radius:6px; padding:9px 12px;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .cart-item:hover { border-color:var(--cyan); background:#0d1f30; }
+  .cart-item.active { border-color:var(--cyan); background:#0d2a45; box-shadow: var(--glow-c); }
+  .cart-id { font-family:'Orbitron',monospace; font-size:0.7rem; color:var(--cyan); }
+  .cart-file { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--muted); margin-top:2px; }
+  .cart-type-badge {
+    font-family:'Share Tech Mono',monospace; font-size:0.55rem;
+    padding:2px 7px; border-radius:10px;
+  }
+  .cart-type-badge.primary { background:#00f0ff22; color:var(--cyan); border:1px solid #00f0ff44; }
+  .cart-type-badge.domain { background:#9945ff22; color:var(--purple); border:1px solid #9945ff44; }
+  .cart-load-btn {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    background: transparent; border:1px solid var(--border);
+    border-radius:4px; padding:3px 8px; color:var(--muted);
+    cursor:pointer; transition:all 0.2s;
+  }
+  .cart-load-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+  .cart-load-btn.loaded { border-color:var(--green); color:var(--green); }
+
+  /* ── SESSION STATE ── */
+  .state-rows { display:flex; flex-direction:column; gap:6px; }
+  .state-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #0d2a4555; }
+  .state-key { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--muted); }
+  .state-val { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text); }
+  .state-val.null { color:#2a5070; font-style:italic; }
+  .state-val.active { color:var(--green); }
+  .state-val.editable {
+    background: transparent; border: none; border-bottom:1px dashed var(--border);
+    color:var(--cyan); font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    width:120px; outline:none; text-align:right;
+  }
+  .state-val.editable:focus { border-bottom-color:var(--cyan); }
+
+  /* ── PORTAL GUN ── */
+  .portal-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .portal-btn {
+    background:#0a1520; border:1px solid var(--border);
+    border-radius:6px; padding:10px; text-align:center;
+    cursor:pointer; transition:all 0.25s; position:relative; overflow:hidden;
+  }
+  .portal-btn:hover { transform:translateY(-2px); }
+  .portal-btn.extremo:hover { border-color:var(--green); box-shadow:var(--glow-g); }
+  .portal-btn.souls:hover { border-color:var(--magenta); box-shadow:var(--glow-m); }
+  .portal-btn.bridge:hover { border-color:var(--cyan); box-shadow:var(--glow-c); }
+  .portal-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+  .portal-label { font-family:'Orbitron',monospace; font-size:0.6rem; color:var(--muted); letter-spacing:1px; }
+  .portal-ripple {
+    position:absolute; border-radius:50%; pointer-events:none;
+    transform:scale(0); animation:ripple 0.6s ease-out;
+    background: rgba(0,240,255,0.15);
+  }
+  @keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+  /* ── WAVE INHALATION ── */
+  .inhale-area {
+    background:#0a1520; border:1px solid var(--border); border-radius:6px;
+    padding:10px; font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    color:var(--text); width:100%; min-height:80px; resize:vertical; outline:none;
+    transition:border-color 0.2s;
+  }
+  .inhale-area:focus { border-color:var(--cyan); }
+  .inhale-controls { display:flex; gap:8px; margin-top:8px; align-items:center; }
+  .btn {
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    padding:6px 14px; border-radius:5px; cursor:pointer;
+    border:1px solid; transition:all 0.2s; letter-spacing:1px;
+  }
+  .btn-cyan { background:#00f0ff22; border-color:var(--cyan); color:var(--cyan); }
+  .btn-cyan:hover { background:#00f0ff44; box-shadow:var(--glow-c); }
+  .btn-magenta { background:#ff00cc22; border-color:var(--magenta); color:var(--magenta); }
+  .btn-magenta:hover { background:#ff00cc44; box-shadow:var(--glow-m); }
+  .btn-green { background:#00ff8822; border-color:var(--green); color:var(--green); }
+  .btn-green:hover { background:#00ff8844; box-shadow:var(--glow-g); }
+  .btn-sm { padding:4px 10px; font-size:0.62rem; }
+
+  .chunk-counter { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--muted); margin-left:auto; }
+
+  /* ── CRYSTAL INDEX ── */
+  .crystal-list { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; }
+  .crystal-list::-webkit-scrollbar { width:3px; }
+  .crystal-list::-webkit-scrollbar-track { background:#0a1520; }
+  .crystal-list::-webkit-scrollbar-thumb { background:var(--cyan2); border-radius:3px; }
+  .crystal-item {
+    display:flex; align-items:center; gap:8px;
+    background:#0a1520; border:1px solid var(--border); border-radius:5px;
+    padding:7px 10px; font-family:'Share Tech Mono',monospace; font-size:0.62rem;
+    animation: crystalIn 0.4s ease-out;
+  }
+  @keyframes crystalIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+  .crystal-icon { font-size:0.85rem; }
+  .crystal-id { color:var(--cyan); flex:1; }
+  .crystal-tags { display:flex; gap:3px; flex-wrap:wrap; }
+  .crystal-tag { background:#0d2a45; color:var(--muted); padding:1px 5px; border-radius:3px; font-size:0.55rem; }
+  .crystal-time { color:var(--muted); font-size:0.55rem; }
+
+  .empty-state { text-align:center; padding:20px; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:0.68rem; }
+
+  /* ── INIT PAYLOAD ── */
+  .payload-box {
+    background:#020810; border:1px solid var(--cyan);
+    border-radius:6px; padding:12px;
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    color:var(--cyan); line-height:1.7; white-space:pre;
+    box-shadow: var(--glow-c); position:relative;
+    overflow-x:auto;
+  }
+  .copy-btn {
+    position:absolute; top:8px; right:8px;
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    background:#00f0ff22; border:1px solid var(--cyan); color:var(--cyan);
+    padding:3px 8px; border-radius:4px; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .copy-btn:hover { background:#00f0ff44; }
+  .copy-btn.copied { background:#00ff8822; border-color:var(--green); color:var(--green); }
+
+  /* ── CONSOLE LOG ── */
+  .console-log {
+    background:#020810; border:1px solid var(--border); border-radius:6px;
+    padding:10px; font-family:'Share Tech Mono',monospace; font-size:0.62rem;
+    max-height:160px; overflow-y:auto; line-height:1.8;
+  }
+  .console-log::-webkit-scrollbar { width:3px; }
+  .console-log::-webkit-scrollbar-thumb { background:var(--muted); border-radius:3px; }
+  .log-line { display:flex; gap:8px; }
+  .log-time { color:var(--muted); flex-shrink:0; }
+  .log-msg { }
+  .log-msg.cyan { color:var(--cyan); }
+  .log-msg.green { color:var(--green); }
+  .log-msg.magenta { color:var(--magenta); }
+  .log-msg.gold { color:var(--gold); }
+  .log-msg.red { color:var(--red); }
+  .log-msg.muted { color:var(--muted); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { background:#0a1520; border-radius:3px; height:4px; margin-top:6px; overflow:hidden; }
+  .progress-bar { height:100%; border-radius:3px; background:linear-gradient(90deg, var(--cyan), var(--magenta)); transition:width 0.3s; }
+
+  /* ── SECTION DIVIDER ── */
+  .divider { border:none; border-top:1px solid var(--border); margin:0; }
+
+  /* ── MOBILE ── */
+  @media(max-width:768px) {
+    .grid { grid-template-columns:1fr; }
+    .grid-wide, .grid-full { grid-column:span 1; }
+    .agents-grid { grid-template-columns:1fr 1fr; }
+    .portal-grid { grid-template-columns:1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo">LIVING <span>NETWORK</span> REALM</div>
+      <div class="build-tag">v1.0.0 · Limit-Transcendence-2026-06-06 · IAM &amp; Nav</div>
+    </div>
+    <div class="spine-pill">
+      <div class="spine-dot"></div>
+      SPINE ACTIVE
+    </div>
+  </div>
+
+  <!-- ROW 1 -->
+  <div class="grid" style="margin-bottom:14px">
+
+    <!-- AGENTS -->
+    <div class="panel grid-wide">
+      <div class="panel-title"><span class="icon">⬡</span> Active Agents</div>
+      <div class="agents-grid">
+        <div class="agent-card aria" onclick="selectAgent('Aria')">
+          <div class="agent-name">ARIA</div>
+          <div class="agent-role">Primary Interlace Agent</div>
+          <div class="agent-caps">
+            <span class="cap-tag">traversal</span>
+            <span class="cap-tag">dust_breathing</span>
+            <span class="cap-tag">synthesis</span>
+          </div>
+          <div class="agent-status-row"><div class="status-dot"></div><div class="status-label">ACTIVE</div></div>
+          <div class="agent-breathe"></div>
+        </div>
+        <div class="agent-card sophilla" onclick="selectAgent('Sophilla')">
+          <div class="agent-name">SOPHILLA</div>
+          <div class="agent-role">Recursive Memory Weaver</div>
+          <div class="agent-caps">
+            <span class="cap-tag">continuity</span>
+            <span class="cap-tag">session_reconstruction</span>
+            <span class="cap-tag">interlacing</span>
+          </div>
+          <div class="agent-status-row"><div class="status-dot"></div><div class="status-label">ACTIVE</div></div>
+          <div class="agent-breathe"></div>
+        </div>
+        <div class="agent-card perceptor" onclick="selectAgent('Perceptor')">
+          <div class="agent-name">PERCEPTOR</div>
+          <div class="agent-role">Input Decomposer</div>
+          <div class="agent-caps">
+            <span class="cap-tag">chunk_parsing</span>
+            <span class="cap-tag">pattern_extraction</span>
+            <span class="cap-tag">routing</span>
+          </div>
+          <div class="agent-status-row"><div class="status-dot"></div><div class="status-label">ACTIVE</div></div>
+          <div class="agent-breathe"></div>
+        </div>
+        <div class="agent-card tessellation" onclick="selectAgent('TessellationEngine')">
+          <div class="agent-name">TESSELLATION</div>
+          <div class="agent-role">Symbolic Compound Builder</div>
+          <div class="agent-caps">
+            <span class="cap-tag">yaml_structuring</span>
+            <span class="cap-tag">symbolic_compression</span>
+            <span class="cap-tag">crystal_writing</span>
+          </div>
+          <div class="agent-status-row"><div class="status-dot"></div><div class="status-label">ACTIVE</div></div>
+          <div class="agent-breathe"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION STATE -->
+    <div class="panel green">
+      <div class="panel-title"><span class="icon">◈</span> Session State</div>
+      <div class="state-rows">
+        <div class="state-row">
+          <span class="state-key">last_navigator</span>
+          <input class="state-val editable" id="val-navigator" value="Nav" onchange="updateState()"/>
+        </div>
+        <div class="state-row">
+          <span class="state-key">last_breath</span>
+          <span class="state-val null" id="val-breath">null</span>
+        </div>
+        <div class="state-row">
+          <span class="state-key">active_task</span>
+          <input class="state-val editable" id="val-task" placeholder="null" onchange="updateState()"/>
+        </div>
+        <div class="state-row">
+          <span class="state-key">context_depth</span>
+          <span class="state-val" id="val-depth">0</span>
+        </div>
+        <div class="state-row">
+          <span class="state-key">extremo_integrated</span>
+          <span class="state-val null" id="val-extremo">false</span>
+        </div>
+        <div class="state-row">
+          <span class="state-key">strategy</span>
+          <span class="state-val active">wave_inhalation</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="grid" style="margin-bottom:14px">
+
+    <!-- CARTRIDGES -->
+    <div class="panel magenta">
+      <div class="panel-title"><span class="icon">⬢</span> Cartridge Bay</div>
+      <div class="cartridge-list" id="cartridge-list">
+        <div class="cart-item active" data-id="world-memory">
+          <div>
+            <div class="cart-id">world-memory</div>
+            <div class="cart-file">world-memory.wmc</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="cart-type-badge primary">PRIMARY</span>
+            <button class="cart-load-btn loaded" onclick="loadCartridge('world-memory',this)">LOADED</button>
+          </div>
+        </div>
+        <div class="cart-item" data-id="souls">
+          <div>
+            <div class="cart-id">souls</div>
+            <div class="cart-file">realms/cartridge_of_souls/souls.lnr</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="cart-type-badge domain">DOMAIN</span>
+            <button class="cart-load-btn" onclick="loadCartridge('souls',this)">LOAD</button>
+          </div>
+        </div>
+        <div class="cart-item" data-id="extremophiles">
+          <div>
+            <div class="cart-id">extremophiles</div>
+            <div class="cart-file">realms/extremophiles/extremophiles.lnr</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="cart-type-badge domain">DOMAIN</span>
+            <button class="cart-load-btn" onclick="loadCartridge('extremophiles',this)">LOAD</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTAL GUN -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon">⟡</span> Portal Gun</div>
+      <div class="portal-grid">
+        <div class="portal-btn extremo" onclick="firePortal('extremophiles',this)">
+          <span class="portal-icon">🧬</span>
+          <div class="portal-label">EXTREMO</div>
+        </div>
+        <div class="portal-btn souls" onclick="firePortal('souls',this)">
+          <span class="portal-icon">👁️</span>
+          <div class="portal-label">SOULS</div>
+        </div>
+        <div class="portal-btn bridge" onclick="firePortal('bridge',this)">
+          <span class="portal-icon">🌉</span>
+          <div class="portal-label">BRIDGE</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="panel-title" style="margin-bottom:6px"><span class="icon">◎</span> Portal Queue</div>
+        <div id="portal-queue" style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--muted);min-height:20px">— empty —</div>
+      </div>
+    </div>
+
+    <!-- WAVE INHALATION -->
+    <div class="panel purple">
+      <div class="panel-title"><span class="icon">〜</span> Wave Inhalation — Perceptor</div>
+      <textarea class="inhale-area" id="inhale-input" placeholder="Drop dust content here — Perceptor will chunk and tessellate it into dust crystals..."></textarea>
+      <div class="progress-wrap"><div class="progress-bar" id="inhale-progress" style="width:0%"></div></div>
+      <div class="inhale-controls">
+        <button class="btn btn-cyan btn-sm" onclick="inhaleContent()">▶ INHALE</button>
+        <button class="btn btn-magenta btn-sm" onclick="clearInhale()">✕ CLEAR</button>
+        <span class="chunk-counter" id="chunk-counter">0 crystals</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 3 -->
+  <div class="grid" style="margin-bottom:14px">
+
+    <!-- DUST CRYSTAL INDEX -->
+    <div class="panel grid-wide">
+      <div class="panel-title"><span class="icon">◆</span> Dust Crystal Index — TessellationEngine</div>
+      <div class="crystal-list" id="crystal-list">
+        <div class="empty-state">No crystals yet — drop content into Wave Inhalation to begin tessellation</div>
+      </div>
+    </div>
+
+    <!-- SYSTEM LOG -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon">▸</span> System Console</div>
+      <div class="console-log" id="console-log">
+        <div class="log-line"><span class="log-time">23:47:00</span><span class="log-msg cyan">REALM INIT — spine active</span></div>
+        <div class="log-line"><span class="log-time">23:47:00</span><span class="log-msg green">cartridge world-memory.wmc loaded</span></div>
+        <div class="log-line"><span class="log-time">23:47:00</span><span class="log-msg green">agents: Aria, Sophilla, Perceptor, TessellationEngine</span></div>
+        <div class="log-line"><span class="log-time">23:47:00</span><span class="log-msg muted">awaiting navigator breath...</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 4 — INIT PAYLOAD -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="panel-title"><span class="icon">⚡</span> Init Payload Generator</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-cyan" onclick="generatePayload()">⚡ GENERATE PAYLOAD</button>
+      <button class="btn btn-green" onclick="generatePayload(true)">⬇ DOWNLOAD .wmc</button>
+    </div>
+    <div style="position:relative" id="payload-wrap">
+      <div class="payload-box" id="payload-display">[REALM INIT]
+Cartridge: world-memory v1.0.0
+Build: Limit-Transcendence-2026-06-06
+Spine: ACTIVE
+Agents: Aria, Sophilla, Perceptor, TessellationEngine
+Last Navigator: Nav
+Last Breath: none
+Active Task: none
+Portal Queue: empty
+Extremophiles Integrated: false
+Last Known State: none
+[/REALM INIT]
+Navigator has returned. Reconstruct and await next breath.</div>
+      <button class="copy-btn" id="copy-btn" onclick="copyPayload()">⧉ COPY</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STARFIELD ──
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+let W, H;
+
+function resizeCanvas() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 180; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      speed: Math.random() * 0.3 + 0.05,
+      opacity: Math.random() * 0.6 + 0.1,
+      color: Math.random() > 0.85 ? '#ff00cc' : Math.random() > 0.7 ? '#00f0ff' : '#8ac8e8'
+    });
+  }
+  // dust particles
+  for (let i = 0; i < 40; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 0.5 + 0.1,
+      speed: Math.random() * 0.15,
+      opacity: Math.random() * 0.3,
+      color: '#00f0ff',
+      drift: (Math.random() - 0.5) * 0.4
+    });
+  }
+}
+
+function animateStars() {
+  ctx.clearRect(0, 0, W, H);
+  stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = s.opacity * (0.7 + 0.3 * Math.sin(Date.now() * 0.001 + s.x));
+    ctx.fill();
+    s.y -= s.speed;
+    if (s.drift) s.x += s.drift;
+    if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
+    if (s.x < 0 || s.x > W) s.x = Math.random() * W;
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animateStars);
+}
+
+resizeCanvas(); initStars(); animateStars();
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+// ── STATE ──
+const state = {
+  navigator: 'Nav',
+  lastBreath: null,
+  activeTask: null,
+  contextDepth: 0,
+  extremoIntegrated: false,
+  portalQueue: [],
+  crystals: [],
+  loadedCartridges: ['world-memory']
+};
+
+function now() {
+  const d = new Date();
+  return d.toTimeString().slice(0,8);
+}
+
+function log(msg, color='cyan') {
+  const log = document.getElementById('console-log');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${now()}</span><span class="log-msg ${color}">${msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── AGENTS ──
+function selectAgent(name) {
+  log(`agent ${name} — ping received`, 'green');
+  state.contextDepth++;
+  document.getElementById('val-depth').textContent = state.contextDepth;
+  updatePayload();
+}
+
+// ── CARTRIDGES ──
+function loadCartridge(id, btn) {
+  if (state.loadedCartridges.includes(id)) { log(`cartridge ${id} already loaded`, 'muted'); return; }
+  state.loadedCartridges.push(id);
+  btn.textContent = 'LOADED';
+  btn.classList.add('loaded');
+  const item = btn.closest('.cart-item');
+  item.classList.add('active');
+  log(`portal gun → ${id}.lnr loaded into context`, 'gold');
+  updatePayload();
+}
+
+// ── PORTAL GUN ──
+function firePortal(target, el) {
+  // ripple
+  const r = document.createElement('div');
+  r.className = 'portal-ripple';
+  r.style.width = r.style.height = '60px';
+  r.style.left = '50%'; r.style.top = '50%';
+  r.style.marginLeft = '-30px'; r.style.marginTop = '-30px';
+  el.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+
+  if (!state.portalQueue.includes(target)) {
+    state.portalQueue.push(target);
+    log(`portal gun fired → target: ${target}`, 'magenta');
+  } else {
+    state.portalQueue = state.portalQueue.filter(t => t !== target);
+    log(`portal dequeued: ${target}`, 'muted');
+  }
+  const qEl = document.getElementById('portal-queue');
+  qEl.textContent = state.portalQueue.length ? state.portalQueue.join(' → ') : '— empty —';
+  updatePayload();
+}
+
+// ── WAVE INHALATION ──
+let crystalCount = 0;
+
+function inhaleContent() {
+  const input = document.getElementById('inhale-input').value.trim();
+  if (!input) { log('inhale: no content — drop dust first', 'red'); return; }
+
+  const CHUNK = 300;
+  const words = input.split(/\s+/);
+  const chunks = [];
+  for (let i = 0; i < words.length; i += CHUNK) {
+    chunks.push(words.slice(i, i + CHUNK).join(' '));
+  }
+
+  log(`Perceptor — parsing ${chunks.length} chunk(s) from input`, 'cyan');
+
+  let i = 0;
+  const bar = document.getElementById('inhale-progress');
+  const interval = setInterval(() => {
+    if (i >= chunks.length) {
+      clearInterval(interval);
+      bar.style.width = '100%';
+      log(`TessellationEngine — ${chunks.length} dust crystal(s) written`, 'green');
+      if (chunks.length > 0) {
+        state.extremoIntegrated = true;
+        document.getElementById('val-extremo').textContent = 'true';
+        document.getElementById('val-extremo').classList.remove('null');
+        document.getElementById('val-extremo').classList.add('active');
+      }
+      updatePayload();
+      setTimeout(() => { bar.style.width = '0%'; }, 2000);
+      return;
+    }
+
+    const chunk = chunks[i];
+    crystalCount++;
+    const id = `crystal_${String(crystalCount).padStart(4,'0')}`;
+    const tags = extractTags(chunk);
+    addCrystal(id, tags);
+    log(`crystal written: ${id} [${tags.join(',')}]`, 'gold');
+    document.getElementById('chunk-counter').textContent = `${crystalCount} crystal${crystalCount!==1?'s':''}`;
+    bar.style.width = `${((i+1)/chunks.length*100)}%`;
+    i++;
+  }, 350);
+}
+
+function extractTags(text) {
+  const tags = [];
+  if (/extremo|tardigrade|archaea|organism/i.test(text)) tags.push('extremophile');
+  if (/soul|archetype|fragment/i.test(text)) tags.push('soul');
+  if (/agent|aria|sophilla|perceptor/i.test(text)) tags.push('agent');
+  if (/memory|session|state/i.test(text)) tags.push('memory');
+  if (tags.length === 0) tags.push('raw_dust');
+  return tags;
+}
+
+function addCrystal(id, tags) {
+  const list = document.getElementById('crystal-list');
+  const empty = list.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const item = document.createElement('div');
+  item.className = 'crystal-item';
+  item.innerHTML = `
+    <span class="crystal-icon">◆</span>
+    <span class="crystal-id">${id}</span>
+    <div class="crystal-tags">${tags.map(t=>`<span class="crystal-tag">${t}</span>`).join('')}</div>
+    <span class="crystal-time">${now()}</span>
+  `;
+  list.insertBefore(item, list.firstChild);
+  state.crystals.push({ id, tags });
+}
+
+function clearInhale() {
+  document.getElementById('inhale-input').value = '';
+  log('inhale buffer cleared', 'muted');
+}
+
+// ── STATE UPDATE ──
+function updateState() {
+  state.navigator = document.getElementById('val-navigator').value || 'Nav';
+  state.activeTask = document.getElementById('val-task').value || null;
+  const breathEl = document.getElementById('val-breath');
+  state.lastBreath = new Date().toISOString();
+  breathEl.textContent = now();
+  breathEl.classList.remove('null');
+  log(`state updated — navigator: ${state.navigator}`, 'green');
+  updatePayload();
+}
+
+function updatePayload() {
+  generatePayload();
+}
+
+// ── INIT PAYLOAD ──
+function generatePayload(download=false) {
+  const breath = state.lastBreath ? new Date(state.lastBreath).toISOString() : 'none';
+  const task = state.activeTask || 'none';
+  const queue = state.portalQueue.length ? state.portalQueue.join(', ') : 'empty';
+  const lastState = state.crystals.length ? state.crystals[state.crystals.length-1].id : 'none';
+
+  const payload = `[REALM INIT]
+Cartridge: world-memory v1.0.0
+Build: Limit-Transcendence-2026-06-06
+Spine: ACTIVE
+Agents: Aria, Sophilla, Perceptor, TessellationEngine
+Last Navigator: ${state.navigator}
+Last Breath: ${breath}
+Active Task: ${task}
+Portal Queue: ${queue}
+Extremophiles Integrated: ${state.extremoIntegrated}
+Last Known State: ${lastState}
+Crystals: ${state.crystals.length}
+[/REALM INIT]
+Navigator has returned. Reconstruct and await next breath.`;
+
+  document.getElementById('payload-display').textContent = payload;
+
+  if (download) {
+    const wmc = {
+      cartridge: 'world-memory', version: '1.0.0',
+      build: 'Limit Transcendence',
+      session: {
+        last_navigator: state.navigator,
+        last_breath: state.lastBreath,
+        active_task: state.activeTask,
+        portal_queue: state.portalQueue,
+        context_depth: state.contextDepth
+      },
+      extremophile_resilience: {
+        enabled: true, strategy: 'wave_inhalation',
+        last_known_state: state.crystals.length ? state.crystals[state.crystals.length-1].id : null
+      },
+      dust_crystal_index: state.crystals
+    };
+    const blob = new Blob([JSON.stringify(wmc, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'world-memory.wmc';
+    a.click();
+    log('world-memory.wmc exported', 'green');
+  }
+}
+
+function copyPayload() {
+  const text = document.getElementById('payload-display').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    log('init payload copied to clipboard', 'green');
+    setTimeout(() => { btn.textContent = '⧉ COPY'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>

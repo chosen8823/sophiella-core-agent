@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { 
+      width: 420px; 
+      height: 600px; 
+      margin: 0; 
+      padding: 0;
+      overflow: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .typing-dot {
+      animation: pulse-dot 1.4s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-slate-900 transition-colors duration-300" id="app">
+  <div class="flex flex-col h-screen">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" role="banner" aria-label="Chat header">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center" aria-hidden="true">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-semibold text-slate-800 dark:text-white" aria-label="AI Companion">AI Companion</h1>
+          <p class="text-xs text-green-500 flex items-center gap-1" aria-live="polite" id="statusIndicator">
+            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+            <span>Online</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="themeToggle" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" aria-label="Toggle theme" title="Toggle theme">
+          <i data-lucide="sun" class="w-4 h-4 text-slate-600 dark:text-slate-300 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 text-slate-600 dark:text-slate-300 block dark:hidden"></i>
+        </button>
+        <button id="settingsBtn" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" aria-label="Open settings" title="Settings">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
+        </button>
+        <button id="sandboxBtn" class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors" aria-label="Open sandbox" title="Sandbox Environment">
+          <i data-lucide="box" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
+        </button>
+        <button id="clearChatBtn" class="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" aria-label="Clear chat" title="Clear chat">
+          <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Messages -->
+    <main class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-slate-50 dark:bg-slate-800" role="log" aria-label="Chat messages" aria-live="polite" id="chatContainer">
+      <div class="space-y-4" id="messagesContainer">
+        <!-- Welcome Message -->
+        <div class="flex gap-3" role="article" aria-label="Welcome message">
+          <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1" aria-hidden="true">
+            <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+          </div>
+          <div class="flex-1">
+            <div class="bg-white dark:bg-slate-700 rounded-2xl rounded-tl-sm p-3 shadow-sm" aria-label="Message content">
+              <p class="text-sm text-slate-700 dark:text-slate-200">Hello! 👋 I'm your AI companion. I can help with real-time conversations, aria accessibility features, and adapt to your needs. How can I assist you today?</p>
+            </div>
+            <span class="text-xs text-slate-400 dark:text-slate-500 mt-1 block">Just now</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Typing Indicator -->
+      <div class="flex gap-3 mt-4 hidden" id="typingIndicator" aria-live="polite" aria-label="AI is typing">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+        </div>
+        <div class="bg-white dark:bg-slate-700 rounded-2xl rounded-tl-sm p-4 shadow-sm">
+          <div class="flex gap-1">
+            <span class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full typing-dot"></span>
+            <span class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full typing-dot"></span>
+            <span class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full typing-dot"></span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Input Area -->
+    <footer class="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" role="form" aria-label="Message input">
+      <div class="flex gap-2 items-end">
+        <button id="voiceBtn" class="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0" aria-label="Voice input" title="Voice input">
+          <i data-lucide="mic" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
+        </button>
+        <div class="flex-1 relative">
+          <textarea 
+            id="messageInput" 
+            rows="1" 
+            class="w-full resize-none bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400 dark:placeholder-slate-500" 
+            placeholder="Type your message..."
+            aria-label="Message input"
+            maxlength="4000"
+          ></textarea>
+          <span class="absolute right-3 bottom-2.5 text-xs text-slate-400" id="charCount" aria-live="polite">0/4000</span>
+        </div>
+        <button id="sendBtn" class="p-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Send message" title="Send message">
+          <i data-lucide="send" class="w-4 h-4 text-white"></i>
+        </button>
+      </div>
+      <div class="flex gap-2 mt-2" role="toolbar" aria-label="Quick actions">
+        <button class="quick-action px-3 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="Explain this page">Explain page</button>
+        <button class="quick-action px-3 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="Summarize for accessibility">Summarize (A11y)</button>
+        <button class="quick-action px-3 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="Check aria labels">Check ARIA</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Sandbox Panel -->
+  <div id="sandboxPanel" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-40" role="dialog" aria-modal="true" aria-label="Sandbox Environment">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl w-[95vw] h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+            <i data-lucide="box" class="w-4 h-4 text-white"></i>
+          </div>
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Sandbox Environment</h2>
+          <span class="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full">Isolated</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="sandboxFullscreen" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Fullscreen">
+            <i data-lucide="maximize" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
+          </button>
+          <button id="closeSandbox" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" aria-label="Close sandbox">
+            <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 relative">
+        <iframe id="sandboxFrame" src="sandbox.html" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-popups" title="AI Companion Sandbox Environment"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-[380px] max-h-[500px] overflow-y-auto custom-scrollbar shadow-2xl">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Settings ⚙️</h2>
+        <button id="closeSettings" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg" aria-label="Close settings">
+          <i data-lucide="x" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="apiEndpoint">API Endpoint</label>
+          <input id="apiEndpoint" type="url" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://api.openai.com/v1/chat/completions" aria-label="API endpoint URL">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="apiKey">API Key</label>
+          <input id="apiKey" type="password" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="sk-..." aria-label="API key">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="modelSelect">Model</label>
+          <select id="modelSelect" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Select AI model">
+            <option value="gpt-4">GPT-4</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="custom">Custom Model</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="darkModeToggle">Dark Mode</label>
+          <button id="darkModeToggle" class="relative w-12 h-6 bg-slate-200 dark:bg-blue-600 rounded-full transition-colors" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform dark:translate-x-6"></span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="autoSpeakToggle">Auto-speak Responses</label>
+          <button id="autoSpeakToggle" class="relative w-12 h-6 bg-slate-200 dark:bg-blue-600 rounded-full transition-colors" role="switch" aria-checked="false" aria-label="Toggle auto-speak">
+            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="ariaEnhancedToggle">Enhanced ARIA Mode</label>
+          <button id="ariaEnhancedToggle" class="relative w-12 h-6 bg-slate-200 dark:bg-blue-600 rounded-full transition-colors" role="switch" aria-checked="true" aria-label="Toggle enhanced ARIA">
+            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform translate-x-6"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-2">
+        <button id="saveSettings" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all">Save Settings</button>
+        <button id="resetSettings" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm shadow-lg transition-all opacity-0 translate-y-2 pointer-events-none z-50" role="alert" aria-live="assertive"></div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
